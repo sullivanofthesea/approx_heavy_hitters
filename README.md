@@ -1,6 +1,12 @@
 # approx_heavy_hitters
 
-This tool estimates the most frequently accessed file paths and calculates file size percentiles. It uses Count-Min Sketch and TreeMap-based structures.
+## Overview
+
+`approx_heavy_hitters` is a command-line utility written in Go that estimates the most frequently accessed file paths (approximate heavy hitters) and computes statistical percentiles for file sizes within a stream of tab-delimited path–size records. It is designed for use with large input files or unbounded data streams where memory efficiency is critical and exact frequency tracking is impractical.
+
+The tool uses a Count-Min Sketch (CMS) to estimate the frequency of each unique file path, trading off a small bounded error for constant memory usage. It maintains a TreeMap to track the top-k file paths with the highest estimated access frequencies and applies collision handling using chained path strings. For size analysis, a second TreeMap is used to store and sort file size values, allowing efficient calculation of approximate p50, p75, p90, and p99 percentiles.
+
+This implementation is single-pass, operates entirely in memory, and includes placeholder functionality for batching, pruning, and socket-based output extensions. The current config processes input from a local file named `path1.txt` and prints output to the console. Code is structured with a focus on compact data processing, though TODO sections show areas for future encapsulation, configurability, modular design, and testing coverage.
 
 ## Requirements
 
