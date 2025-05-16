@@ -1,0 +1,10 @@
+# Build artifacts
+*.exe
+*.out
+*.test
+ahh
+
+# Editor / OS files
+.DS_Store
+.idea/
+.vscode/
