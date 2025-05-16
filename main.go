@@ -1,5 +1,5 @@
 //inputs file, estimates the top 10 most frequently accessed paths, outputs percentils of file sizes seen in universe
-//preliminary submission by Acamar Orionis
+//preliminary submission by Acamar Orionis (Erica Stephens)
 //Credit to: https://github.com/shenwei356/countminsketch for CMS data structure
 //		 to: GoDS - Go Data Structures for Tree and Arraylist implementations
 
