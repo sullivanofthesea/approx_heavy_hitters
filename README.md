@@ -70,3 +70,10 @@ The program prints:
 
 - Paths are estimated using a Count-Min Sketch
 - Percentiles are derived from a TreeMap of file sizes
+
+- ## TODO 
+
+- [ ] Add test coverage for `updateAHHTree`
+- [ ] Package CLI with user-friendly flags/help text
+- [ ] Add CI pipeline using GitHub Actions
+
