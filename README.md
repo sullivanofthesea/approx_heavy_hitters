@@ -117,7 +117,7 @@ approx_heavy_hitters/
 
 ---
 
-## TODO / Next Steps
+## TODO  -- what's next for this
 
 - [x] Add test coverage for `updateAHHTree` and core logic
 - [x] Refactor into internal packages for clarity and reuse
