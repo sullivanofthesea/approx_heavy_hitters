@@ -1,4 +1,7 @@
 # Build artifacts
+*.txt
+*.log
+tools/*.go
 *.exe
 *.out
 *.test
