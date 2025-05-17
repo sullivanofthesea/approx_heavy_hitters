@@ -4,11 +4,17 @@ package main
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
+	"github.com/estephensltu/approx_heavy_hitters/internal/tree"
+	"github.com/estephensltu/approx_heavy_hitters/internal/sketch"
+
 )
 
 func TestPercentileTree_GetPercentiles(t *testing.T) {
-	p := NewPercentileTree()
+	//p := NewPercentileTree()
+	p := tree.NewPercentileTree()
+
 	sampleSizes := []int{100, 200, 300, 400, 500, 600, 700, 800, 900, 1000}
 	for _, size := range sampleSizes {
 		p.Add(size)
@@ -30,7 +36,9 @@ func TestPercentileTree_GetPercentiles(t *testing.T) {
 }
 
 func TestCMSWrapper_EstimateAccuracy(t *testing.T) {
-	cms := NewCMSWrapper(0.01, 0.9)
+	//cms := NewCMSWrapper(0.01, 0.9)
+	cms := sketch.NewCMSWrapper(0.01, 0.9)
+	
 	for i := 0; i < 100; i++ {
 		cms.Update("/some/path")
 	}
