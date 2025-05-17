@@ -36,6 +36,8 @@ The memory-bounded and single-pass nature of the implementation makes it suitabl
 
 - Go 1.18 or later
 - A tab-delimited input file named `path1.txt` in the same directory
+- Optional: `config.json` for sketch parameters
+
 
 ## Input Format
 
@@ -49,8 +51,11 @@ Each line should contain a path and a file size in bytes, separated by a tab:
 ## Usage
 
 ```bash
-go run main.go
+go run main.go --input=path1.txt --batchSize=1000 --varepsilon=0.01 --delta=0.9
 ```
+
+Flags override values from config.json if both are provided.
+
 
 or
 
@@ -68,12 +73,22 @@ The program prints:
 
 ## Notes
 
-- Paths are estimated using a Count-Min Sketch
-- Percentiles are derived from a TreeMap of file sizes
+- Batching: Processes input in batches with optional memory reset
+- Count-Min Sketch: Estimates frequency of access per path
+- Percentiles: Derived from a TreeMap of file sizes
+- Configurable via CLI flags or optional config.json
+- Unit-tested with `go test`
+
 
 - ## TODO 
 
-- [ ] Add test coverage for `updateAHHTree`
-- [ ] Package CLI with user-friendly flags/help text
+## TODO / Next Steps
+
+- [x] Add test coverage for `updateAHHTree`
+- [x] Package CLI with user-friendly flags/help text
+- [x] Add percentile test harness with `go test`
 - [ ] Add CI pipeline using GitHub Actions
+- [ ] Add support for `--topN` or output to JSON
+- [ ] Add Makefile or installer for CLI distribution
+
 
