@@ -79,9 +79,6 @@ The program prints:
 - Configurable via CLI flags or optional config.json
 - Unit-tested with `go test`
 
-
-- ## TODO 
-
 ## TODO
 
 - [x] Add test coverage for `updateAHHTree`
