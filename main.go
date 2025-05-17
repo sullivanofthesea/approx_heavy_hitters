@@ -5,12 +5,14 @@
 // Refactored: Clean code structure, encapsulate sketch, tree, error handling, removed globar vars, improved structure
 // Refactored: Add config file instead of hard coding (boo) - Load epsilon/delta from config.json
 // Feature added: Simple batching and mem control (can be enhanced later)
+// Feature added: CLI flags for input file, batchSize, varepsilon, delta
 
 package main
 
 import (
 	"bufio"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"math"
@@ -94,29 +96,46 @@ func (p *PercentileTree) GetPercentiles() map[string]int {
 
 func loadConfig(path string) Config {
 	file, err := os.Open(path)
-	checkErr(err)
+	if err != nil {
+		return Config{Varepsilon: 0.01, Delta: 0.9} // fallback
+	}
 	defer file.Close()
-
 	decoder := json.NewDecoder(file)
 	var config Config
 	err = decoder.Decode(&config)
-	checkErr(err)
+	if err != nil {
+		return Config{Varepsilon: 0.01, Delta: 0.9}
+	}
 	return config
 }
 
 func main() {
+	inputFile := flag.String("input", "path1.txt", "Path to input file")
+	varepsilon := flag.Float64("varepsilon", 0.01, "Error bound for CMS")
+	delta := flag.Float64("delta", 0.9, "Confidence level for CMS")
+	batchSize := flag.Int("batchSize", 1000, "Number of lines per batch")
+	flag.Parse()
+
 	config := loadConfig("config.json")
-	f, err := os.Open("path1.txt")
+
+	// CLI flags override config.json if provided
+	if *varepsilon == 0 {
+		*varepsilon = config.Varepsilon
+	}
+	if *delta == 0 {
+		*delta = config.Delta
+	}
+
+	f, err := os.Open(*inputFile)
 	checkErr(err)
 	defer f.Close()
-	processInput(f, config)
+
+	processInput(f, *varepsilon, *delta, *batchSize)
 }
 
-func processInput(r io.Reader, config Config) {
-	batchSize := 1000
+func processInput(r io.Reader, varepsilon float64, delta float64, batchSize int) {
 	lineCount := 0
-
-	sketch := NewCMSWrapper(config.Varepsilon, config.Delta)
+	sketch := NewCMSWrapper(varepsilon, delta)
 	percentiles := NewPercentileTree()
 	finalAHH := arraylist.New()
 	seedVal := "seed"
@@ -143,16 +162,13 @@ func processInput(r io.Reader, config Config) {
 
 		if lineCount%batchSize == 0 {
 			printBatchSummary(m, percentiles, finalAHH, seedVal)
-
-			// Optionally reset state to manage memory
-			sketch = NewCMSWrapper(config.Varepsilon, config.Delta)
+			sketch = NewCMSWrapper(varepsilon, delta)
 			percentiles = NewPercentileTree()
 			m = treemap.NewWithIntComparator()
 			finalAHH = arraylist.New()
 		}
 	}
 
-	// Print summary for final batch
 	if lineCount%batchSize != 0 {
 		printBatchSummary(m, percentiles, finalAHH, seedVal)
 	}
