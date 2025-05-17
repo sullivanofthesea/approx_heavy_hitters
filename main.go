@@ -3,11 +3,13 @@
 //Credit to: https://github.com/shenwei356/countminsketch for CMS data structure
 //		 to: GoDS - Go Data Structures for Tree and Arraylist implementations
 // Refactored: Clean code structure, encapsulate sketch, tree, error handling, removed globar vars, improved structure
+// Refactored: Add config file instead of hard coding (boo) - Load epsilon/delta from config.json
 
 package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"io"
 	"math"
@@ -20,8 +22,13 @@ import (
 	"github.com/shenwei356/countminsketch"
 )
 
+type Config struct {
+	Varepsilon float64 `json:"varepsilon"`
+	Delta      float64 `json:"delta"`
+}
+
 type CMSWrapper struct {
-	sketch *countminsketch.CountMinSketch
+	sketch  *countminsketch.CountMinSketch
 	epsilon float64
 	delta   float64
 }
@@ -30,7 +37,7 @@ func NewCMSWrapper(epsilon, delta float64) *CMSWrapper {
 	s, err := countminsketch.NewWithEstimates(epsilon, delta)
 	checkErr(err)
 	return &CMSWrapper{
-		sketch: s,
+		sketch:  s,
 		epsilon: epsilon,
 		delta:   delta,
 	}
@@ -84,16 +91,28 @@ func (p *PercentileTree) GetPercentiles() map[string]int {
 	return result
 }
 
+func loadConfig(path string) Config {
+	file, err := os.Open(path)
+	checkErr(err)
+	defer file.Close()
+
+	decoder := json.NewDecoder(file)
+	var config Config
+	err = decoder.Decode(&config)
+	checkErr(err)
+	return config
+}
+
 func main() {
+	config := loadConfig("config.json")
 	f, err := os.Open("path1.txt")
 	checkErr(err)
 	defer f.Close()
-	processInput(f)
+	processInput(f, config)
 }
 
-func processInput(r io.Reader) {
-	sketch := NewCMSWrapper(0.01, 0.9)
-	tree := treemap.NewWithIntComparator()
+func processInput(r io.Reader, config Config) {
+	sketch := NewCMSWrapper(config.Varepsilon, config.Delta)
 	percentiles := NewPercentileTree()
 	finalAHH := arraylist.New()
 	seedVal := "seed"
@@ -149,6 +168,10 @@ func processInput(r io.Reader) {
 
 func updateAHHTree(m *treemap.Map, est int, path, seed string) {
 	minKey, _ := m.Min()
+	if minKey == nil {
+		m.Put(est, path)
+		return
+	}
 	min := minKey.(int)
 	existing, found := m.Get(est)
 
