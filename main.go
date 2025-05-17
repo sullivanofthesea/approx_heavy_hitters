@@ -4,6 +4,7 @@
 //		 to: GoDS - Go Data Structures for Tree and Arraylist implementations
 // Refactored: Clean code structure, encapsulate sketch, tree, error handling, removed globar vars, improved structure
 // Refactored: Add config file instead of hard coding (boo) - Load epsilon/delta from config.json
+// Feature added: Simple batching and mem control (can be enhanced later)
 
 package main
 
@@ -105,28 +106,26 @@ func loadConfig(path string) Config {
 
 func main() {
 	config := loadConfig("config.json")
-	f, err := os.Open("path1.txt")
+	//f, err := os.Open("path1.txt")
+	f, err := os.Open("path1_large.txt")
 	checkErr(err)
 	defer f.Close()
 	processInput(f, config)
 }
 
 func processInput(r io.Reader, config Config) {
+	batchSize := 1000
+	lineCount := 0
+
 	sketch := NewCMSWrapper(config.Varepsilon, config.Delta)
 	percentiles := NewPercentileTree()
 	finalAHH := arraylist.New()
 	seedVal := "seed"
 	m := treemap.NewWithIntComparator()
-	br := bufio.NewReader(r)
+	br := bufio.NewScanner(r)
 
-	for {
-		line, err := br.ReadString('\n')
-		if err == io.EOF && line == "" {
-			break
-		} else if err != nil && err != io.EOF {
-			checkErr(err)
-		}
-		line = strings.TrimSpace(line)
+	for br.Scan() {
+		line := strings.TrimSpace(br.Text())
 		fields := strings.Split(line, "\t")
 		if len(fields) != 2 {
 			continue
@@ -141,11 +140,26 @@ func processInput(r io.Reader, config Config) {
 		est := int(sketch.Estimate(path))
 		updateAHHTree(m, est, path, seedVal)
 		percentiles.Add(size)
-		if err == io.EOF {
-			break
+		lineCount++
+
+		if lineCount%batchSize == 0 {
+			printBatchSummary(m, percentiles, finalAHH, seedVal)
+
+			// Optionally reset state to manage memory
+			sketch = NewCMSWrapper(config.Varepsilon, config.Delta)
+			percentiles = NewPercentileTree()
+			m = treemap.NewWithIntComparator()
+			finalAHH = arraylist.New()
 		}
 	}
 
+	// Print summary for final batch
+	if lineCount%batchSize != 0 {
+		printBatchSummary(m, percentiles, finalAHH, seedVal)
+	}
+}
+
+func printBatchSummary(m *treemap.Map, percentiles *PercentileTree, finalAHH *arraylist.List, seedVal string) {
 	fmt.Println("\nTop 10 Paths:")
 	itAHH := m.Iterator()
 	itAHH.End()
